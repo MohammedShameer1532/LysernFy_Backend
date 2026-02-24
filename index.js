@@ -11,7 +11,7 @@ app.use('/api', likes);
 
 // 🔗 Turso DB
 const db = createClient({
-  url: process.env.db_url,
+  url: process.env.TURSO_DATABASE_URL,
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
