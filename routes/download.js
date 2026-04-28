@@ -13,7 +13,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 router.post("/download", async (req, res) => {
   try {
     const { mp3Url, imageUrl, title, artist, album, year } = req.body;
-    
+
     const tempDir = process.env.TMPDIR || "/tmp"; // Vercel uses /tmp, Windows uses env
 
     if (!fs.existsSync(tempDir)) {
@@ -55,6 +55,7 @@ router.post("/download", async (req, res) => {
         artist,
         album,
         year: String(year || ""),
+        publisher: "LysernFy",
         ...(imageBuffer && {
           APIC: {
             mime: "image/jpeg",
