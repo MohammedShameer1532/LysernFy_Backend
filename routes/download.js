@@ -13,10 +13,15 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 router.post("/download", async (req, res) => {
   try {
     const { mp3Url, imageUrl, title, artist, album, year } = req.body;
+    
+    const tempDir = process.env.TMPDIR || "/tmp"; // Vercel uses /tmp, Windows uses env
 
-    const tempInput = path.join("temp_input.mp3");
-    const tempOutput = path.join("temp_output.mp3");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
 
+    const tempInput = path.join(tempDir, `input_${Date.now()}.mp3`);
+    const tempOutput = path.join(tempDir, `output_${Date.now()}.mp3`);
     // ✅ 1. Download raw file
     const mp3Res = await axios.get(mp3Url, { responseType: "arraybuffer" });
     fs.writeFileSync(tempInput, mp3Res.data);
@@ -69,8 +74,8 @@ router.post("/download", async (req, res) => {
     res.send(taggedBuffer);
 
     // cleanup
-    fs.unlinkSync(tempInput);
-    fs.unlinkSync(tempOutput);
+    if (fs.existsSync(tempInput)) fs.unlinkSync(tempInput);
+    if (fs.existsSync(tempOutput)) fs.unlinkSync(tempOutput);
 
   } catch (err) {
     console.error(err);
