@@ -200,7 +200,7 @@ router.get("/users/:userId/playlists/:playlistId", asyncHandler(async (req, res)
   // 2️⃣ Get songs
   const result = await db.execute({
     sql: `
-        SELECT song_id, title, artist, artwork, url, position
+        SELECT song_id, title, artist, artwork, url, position,album,year
         FROM playlist_songs
         WHERE playlist_id = ?
         ORDER BY position ASC
