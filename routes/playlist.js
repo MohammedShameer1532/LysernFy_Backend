@@ -81,7 +81,7 @@ router.put("/users/:userId/playlists/:playlistId/", asyncHandler(async (req, res
 // ✅ Add song to playlist
 router.post("/playlists/:id/add", asyncHandler(async (req, res) => {
   const { id } = req.params; // playlistId
-  const { userId, songId, title, artist, artwork, url } = req.body;
+  const { userId, songId, title, artist, artwork, url, album, year } = req.body;
 
   const existing = await db.execute({
     sql: `SELECT 1 FROM playlist_songs WHERE playlist_id = ? AND song_id = ?`,
@@ -92,7 +92,7 @@ router.post("/playlists/:id/add", asyncHandler(async (req, res) => {
     return res.json({ success: true, message: "Song already exists" });
   }
 
-  if (!userId || !songId || !title || !artist || !url) {
+  if (!userId || !songId || !title || !artist || !url || !album || !year) {
     return res.status(400).json({ success: false, error: "Missing required fields" });
   }
 
@@ -118,15 +118,15 @@ router.post("/playlists/:id/add", asyncHandler(async (req, res) => {
   await db.execute({
     sql: `
       INSERT INTO playlist_songs
-      (playlist_id, song_id, title, artist, artwork, url, position)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (playlist_id, song_id, title, artist, artwork, url, position,album,year)
+      VALUES (?, ?, ?, ?, ?, ?, ?,?,?)
     `,
-    args: [id, songId, title, artist, artwork, url, nextPosition],
+    args: [id, songId, title, artist, artwork, url, nextPosition, album, year],
   });
 
   res.status(201).json({
     success: true,
-    song: { songId, title, artist, artwork, url, position: nextPosition },
+    song: { songId, title, artist, artwork, url, position: nextPosition, album, year },
   });
 }));
 
