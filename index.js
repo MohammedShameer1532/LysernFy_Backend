@@ -4,7 +4,6 @@ import cors from "cors";
 import { createClient } from "@libsql/client";
 import likes from './routes/likes.js';
 import playlist from './routes/playlist.js'
-import download from './routes/download.js'
 
 
 const app = express();
@@ -12,7 +11,6 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', likes);
 app.use('/api', playlist);
-app.use('/api', download);
 
 // 🔗 Turso DB
 const db = createClient({
