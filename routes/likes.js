@@ -11,7 +11,7 @@ const db = createClient({
 
 // LIKE
 router.post("/like", async (req, res) => {
-  const { userId, songId, title, artist, artwork, url } = req.body;
+  const { userId, songId, title, artist, artwork, url, album, year } = req.body;
 
   console.log("LIKE REQUEST:", userId, songId);
 
@@ -22,11 +22,11 @@ router.post("/like", async (req, res) => {
   try {
     const result = await db.execute({
       sql: `
-        INSERT INTO likes (user_id, song_id, title, artist, artwork, url)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO likes (user_id, song_id, title, artist, artwork, url,album,year)
+        VALUES (?, ?, ?, ?, ?, ? , ? , ?)
         ON CONFLICT(user_id, song_id) DO NOTHING
       `,
-      args: [userId, songId, title, artist, artwork, url],
+      args: [userId, songId, title, artist, artwork, url, album, year],
     });
 
     console.log("LIKE RESULT:", result);
@@ -59,7 +59,7 @@ router.post("/unlike", async (req, res) => {
 router.get("/likes/check", async (req, res) => {
   const { userId, songId } = req.query;
 
- console.log("CHECKING:", userId, songId);
+  console.log("CHECKING:", userId, songId);
   if (!userId || !songId) {
     return res.status(400).json({ success: false, message: "Missing data" });
   }
@@ -78,7 +78,7 @@ router.get("/likes/:userId", async (req, res) => {
 
   const result = await db.execute({
     sql: `
-      SELECT song_id, title, artist, artwork, url, created_at
+      SELECT song_id, title, artist, artwork, url,album,year, created_at
       FROM likes
       WHERE user_id = ?
       ORDER BY created_at DESC
