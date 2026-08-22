@@ -143,6 +143,121 @@ app.post("/api/session/validate", async (req, res) => {
   res.json({ valid: isActive === 1 });
 });
 
+
+// ============================================================
+// USER LANGUAGE PREFERENCE
+// ============================================================
+
+// Get user's saved language
+app.get("/api/preferences/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId?.trim().toLowerCase();
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId",
+      });
+    }
+
+    const result = await db.execute({
+      sql: `
+        SELECT user_id, music_language
+        FROM user_preferences
+        WHERE user_id = ?
+        LIMIT 1
+      `,
+      args: [userId],
+    });
+
+    // Fresh user - no preference selected yet
+    if (result.rows.length === 0) {
+      return res.json({
+        success: true,
+        isNewUser: true,
+        needsLanguageSelection: true,
+        userId,
+        language: null,
+      });
+    }
+
+    // Existing user
+    return res.json({
+      success: true,
+      isNewUser: false,
+      needsLanguageSelection: false,
+      userId,
+      language: result.rows[0].music_language,
+    });
+
+  } catch (error) {
+    console.error("Get language preference error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get language preference",
+    });
+  }
+});
+
+
+// Save / update user's language
+app.post("/api/preferences/language", async (req, res) => {
+  try {
+    const { userId, language } = req.body;
+
+    if (!userId || !language) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId or language",
+      });
+    }
+
+    const normalizedUserId = userId.trim().toLowerCase();
+    const normalizedLanguage = language.trim().toLowerCase();
+
+    await db.execute({
+      sql: `
+        INSERT INTO user_preferences (
+          user_id,
+          music_language,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          ?,
+          ?,
+          CURRENT_TIMESTAMP,
+          CURRENT_TIMESTAMP
+        )
+        ON CONFLICT(user_id)
+        DO UPDATE SET
+          music_language = excluded.music_language,
+          updated_at = CURRENT_TIMESTAMP
+      `,
+      args: [
+        normalizedUserId,
+        normalizedLanguage,
+      ],
+    });
+
+    return res.json({
+      success: true,
+      userId: normalizedUserId,
+      language: normalizedLanguage,
+      message: "Language preference saved",
+    });
+
+  } catch (error) {
+    console.error("Save language preference error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to save language preference",
+    });
+  }
+});
+
 // 🩺 HEALTH CHECK
 app.get("/", (req, res) => {
   res.send("🔥 Session backend running");

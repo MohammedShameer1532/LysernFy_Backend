@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/jiosaavn', async (req, res) => {
   try {
-    const lang = req.query.lang || 'hindi';
+    const lang = req.query.lang || 'english';
 
     console.log('Requested language:', lang);
 
