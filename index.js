@@ -123,25 +123,36 @@ app.post("/api/session/logout-device", async (req, res) => {
 
 
 app.post("/api/session/validate", async (req, res) => {
-  const { userId, deviceId } = req.body;
+  try {
+    const { userId, deviceId } = req.body;
 
-  const result = await db.execute({
-    sql: `
-      SELECT device_active
-      FROM user_sessions
-      WHERE user_id = ? AND device_id = ?
-    `,
-    args: [userId, deviceId],
-  });
+    const result = await db.execute({
+      sql: `
+        SELECT device_active
+        FROM user_sessions
+        WHERE user_id = ? AND device_id = ?
+      `,
+      args: [userId, deviceId],
+    });
 
-  if (!result.rows.length) {
-    return res.json({ valid: false });
+    if (!result.rows.length) {
+      return res.json({ valid: false });
+    }
+
+    const isActive = result.rows[0].device_active;
+
+    res.json({ valid: isActive === 1 });
+  } catch (error) {
+    console.error("Session validation database error:", error);
+
+    return res.status(500).json({
+      success: false,
+      valid: false,
+      message: "Failed to validate session",
+    });
   }
-
-  const isActive = result.rows[0].device_active;
-
-  res.json({ valid: isActive === 1 });
 });
+
 
 
 // ============================================================
